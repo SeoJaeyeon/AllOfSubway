@@ -49,72 +49,8 @@ public class RealTimeAccessInfoController {
 	private String password;
 	@Value("${ibm.workspace}")
 	private String workspaceId;
-	
 	@Value("${subway.key}")
 	private String appKey;
-	//테스트
-	@RequestMapping(value="/watson", method=RequestMethod.GET ,produces = "application/json;charset=UTF-8")
-	public String watson(){
-		LogManager.getLogManager().reset();
-
-	    // Set up Assistant service.
-	    Assistant service = new Assistant("2018-08-06");
-	    service.setUsernameAndPassword(username, // replace with service username
-	                                   password); // replace with service password
-
-	    // Start assistant with empty message.
-	    MessageOptions options = new MessageOptions.Builder(workspaceId).build();
-	    
-
-	   
-
-
-	        String inputText = "홍대입구역인데 언제와?";
-	        InputData input = new InputData.Builder(inputText).build();
-	        options = new MessageOptions.Builder(workspaceId).input(input).build();
-	     
-	        // Send message to Assistant service.
-	        MessageResponse response = service.message(options).execute();      
-	        String responseText = response.getOutput().getText().get(0);
-	        List<RuntimeIntent> responseIntents = response.getIntents();
-
-	        // If an intent was detected, print it to the console.
-	        if(responseIntents.size() > 0) {
-	          System.out.println("Detected intent: #" + responseIntents.get(0).getIntent());
-	        }
-
-	    return response.getOutput().getText().get(0);
-	    
-	}
-	//테스트
-	@RequestMapping(value="/subway", method=RequestMethod.GET,produces = "application/json;charset=UTF-8")
-	public JsonNode test() throws JsonParseException, JsonMappingException, IOException{
-		RestTemplate restTemplate = new RestTemplate(); 
-		 
-		logger.info(appKey);
-		HttpHeaders headers = new HttpHeaders(); 
-		headers.add("Content-type", "application/json; charset=UTF-8");
-		
-		 
-		HttpEntity entity = new HttpEntity("parameters", headers); 
-
-		logger.info(URLEncoder.encode("서울","UTF-8"));
-		URI url=URI.create("http://swopenapi.seoul.go.kr/api/subway/"+appKey+"/json/realtimeStationArrival/0/5/"+URLEncoder.encode("서울","UTF-8")); 
-		//x -> x좌표, y -> y좌표 
-		 
-		ResponseEntity response= restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-		//String 타입으로 받아오면 JSON 객체 형식으로 넘어옴
-	
-		ObjectMapper obj=new ObjectMapper();
-		RealTimeArrivalList rl=new RealTimeArrivalList();
-		//d=obj.readValue(response.getBody(), JSONMapper.class);
-		
-		JsonNode node=obj.readValue(response.getBody().toString(), JsonNode.class);
-		JsonNode realtimeArrivalList=node.get("realtimeArrivalList");
-	
-		return realtimeArrivalList.get(0);
-		
-	}  
 	
 	@RequestMapping(value = "/keyboard", method = RequestMethod.GET, produces="application/json; charset=UTF-8")
 	public KeyboardVO keyboard()
