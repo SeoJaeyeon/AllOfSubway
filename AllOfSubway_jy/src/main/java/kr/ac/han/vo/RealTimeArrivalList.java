@@ -1,4 +1,4 @@
-package kr.ac.han.mapper;
+package kr.ac.han.vo;
 
 import lombok.Data;
 

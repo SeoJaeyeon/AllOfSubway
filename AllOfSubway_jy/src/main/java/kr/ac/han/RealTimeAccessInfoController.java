@@ -5,22 +5,33 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.List;
-import java.util.logging.LogManager;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.FlashMap;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.View;
+import org.springframework.web.servlet.support.RequestContextUtils;
+import org.springframework.web.servlet.view.RedirectView;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -32,25 +43,24 @@ import com.ibm.watson.developer_cloud.assistant.v1.model.MessageOptions;
 import com.ibm.watson.developer_cloud.assistant.v1.model.MessageResponse;
 import com.ibm.watson.developer_cloud.assistant.v1.model.RuntimeIntent;
 
-import kr.ac.han.mapper.RealTimeArrivalList;
 import kr.ac.han.pf.KeyboardVO;
 import kr.ac.han.pf.MessageVO;
 import kr.ac.han.pf.RequestMessageVO;
 import kr.ac.han.pf.ResponseMessageVO;
+import kr.ac.han.service.SubwayAPIDataService;
+import kr.ac.han.service.WatsonAPIConverterService;
+import kr.ac.han.vo.RealTimeArrivalList;
 
 @RestController
 public class RealTimeAccessInfoController {
 	
 	private static final Logger logger = LoggerFactory.getLogger(RealTimeAccessInfoController.class);
 	
-	@Value("${ibm.username}")
-	private String username;	
-	@Value("${ibm.password}")
-	private String password;
-	@Value("${ibm.workspace}")
-	private String workspaceId;
-	@Value("${subway.key}")
-	private String appKey;
+	@Autowired
+	private SubwayAPIDataService subwayAPIDataService;
+	
+	@Autowired
+	private WatsonAPIConverterService watsonAPIConverterService;
 	
 	@RequestMapping(value = "/keyboard", method = RequestMethod.GET, produces="application/json; charset=UTF-8")
 	public KeyboardVO keyboard()
@@ -60,10 +70,35 @@ public class RealTimeAccessInfoController {
 		return keyboard;
 	}
 	
+	//Open API 2.0 Spec, 스웨거
 	@RequestMapping(value = "/message", method = RequestMethod.POST, produces="application/json; charset=UTF-8")
 	@ResponseBody
-	public ResponseMessageVO message(@RequestBody RequestMessageVO vo) throws JsonParseException, JsonMappingException, IOException
+	public ResponseMessageVO message(@RequestBody RequestMessageVO vo, HttpServletRequest req, Model model) throws JsonParseException, JsonMappingException, IOException, APIServerException
 	{
+		logger.info("/message");
+	/*	if(req.getParameter("reaccess")!=null){
+			//재시도 상태
+			int count=0;
+			if(req.getParameter("count")==null)
+				count=0;
+			else
+				count=Integer.parseInt(req.getParameter("count"))+1;
+			logger.info(count+"번째 호출");
+			model.addAttribute("count",count);
+		}
+		
+		if(req.getParameter("fail")!=null){
+			ResponseMessageVO res_vo=new ResponseMessageVO();
+			MessageVO mes_vo=new MessageVO();
+			KeyboardVO keyboard=new KeyboardVO();
+			keyboard.setType("text");
+			res_vo.setKeyboard(keyboard);
+			MessageVO ms=new MessageVO();
+			ms.setText("잠시후 다시 시도해주세요");
+			res_vo.setMessage(ms);
+			return res_vo;
+		}
+		throw new APIServerException();	*/
 		ResponseMessageVO res_vo=new ResponseMessageVO();
 		MessageVO mes_vo=new MessageVO();
 		KeyboardVO keyboard=new KeyboardVO();
@@ -79,70 +114,48 @@ public class RealTimeAccessInfoController {
 			return res_vo;
 		}
 		
-		//텍스트 요청 받
+		//텍스트 요청 받기
 		String query=vo.getContent();		
 		
+		String station= watsonAPIConverterService.converterJy(query);		
 
-	    // Set up Assistant service.
-	    Assistant service = new Assistant("2018-08-06");
-	    service.setUsernameAndPassword("", // replace with service username
-	                                   ""); // replace with service password
-	    String workspaceId = ""; // replace with workspace ID
-
-	    // Start assistant with empty message.
-	    MessageOptions options = new MessageOptions.Builder(workspaceId).build();
-	    
-	    InputData input = new InputData.Builder(query).build();
-	    options = new MessageOptions.Builder(workspaceId).input(input).build();
-	     
-	        // Send message to Assistant service.
-	    MessageResponse mes_response = service.message(options).execute();      
-	    String responseText = mes_response.getOutput().getText().get(0);
-	    List<RuntimeIntent> responseIntents = mes_response.getIntents();
-
-	        // If an intent was detected, print it to the console.
-	    if(responseIntents.size() > 0) {
-	    System.out.println("Detected intent: #" + responseIntents.get(0).getIntent());
-	    }
-
-	    String station= mes_response.getOutput().getText().get(0);
-		
-
-		RestTemplate restTemplate = new RestTemplate(); 
-		 
-		HttpHeaders headers = new HttpHeaders(); 
-		headers.add("Content-type", "application/json; charset=UTF8");
 		try{
-		String encodeStation=URLEncoder.encode(station,"UTF-8");
-		HttpEntity entity = new HttpEntity("parameters", headers); 
-		//http://swopenapi.seoul.go.kr/api/subway/sample/json/realtimeStationArrival/0/5/서울
-		URI url=URI.create("http://swopenapi.seoul.go.kr/api/subway/"+appKey+"/json/realtimeStationArrival/0/5/"+encodeStation); 
-		//x -> x좌표, y -> y좌표 
-		 
-		ResponseEntity response= restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-		//String 타입으로 받아오면 JSON 객체 형식으로 넘어옴
+	
+		ResponseEntity response= subwayAPIDataService.realAccessTimeData(station);
+
 		ObjectMapper obj=new ObjectMapper();
 		RealTimeArrivalList rl=new RealTimeArrivalList();
-		//d=obj.readValue(response.getBody(), JSONMapper.class);
+
 		
 		JsonNode node=obj.readValue(response.getBody().toString(), JsonNode.class);
 		JsonNode realtimeArrivalList=node.get("realtimeArrivalList");
 		mes_vo.setText(realtimeArrivalList.get(0).get("trainLineNm")+" -> "+realtimeArrivalList.get(0).get("arvlMsg2"));
 		res_vo.setMessage(mes_vo);
-		return res_vo;
 		
 		}catch(NullPointerException exNull){
-			mes_vo.setText("올바른 역 명을 입력해주세요");
+			mes_vo.setText("올바른 역 명을 입력해주세요\nex)건대 어디야? -> 건대입구인데 어디야?");
 			res_vo.setMessage(mes_vo);
 			return res_vo;
 		}
 		catch(Exception ex){
-			ex.printStackTrace();
-			mes_vo.setText("서버뻑가");
-			res_vo.setMessage(mes_vo);
-			return res_vo;
+				throw new APIServerException();			
 		}
+		return res_vo;
 
+	}
+
+	@ExceptionHandler(APIServerException.class)
+	@ResponseBody
+	public RedirectView apiServerExceptionHandler(APIServerException ex,HttpServletRequest request,HttpServletResponse response){
+		  String redirect = "/message?fail";
+		  RedirectView rw = new RedirectView(redirect);
+		  
+		  request.setAttribute(
+			      View.RESPONSE_STATUS_ATTRIBUTE, HttpStatus.TEMPORARY_REDIRECT);
+		  RequestMessageVO vo=new RequestMessageVO();
+		  request.setAttribute("vo", vo);
+		  request.setAttribute("fail", "");
+		  return rw;
 	}
 	
 }

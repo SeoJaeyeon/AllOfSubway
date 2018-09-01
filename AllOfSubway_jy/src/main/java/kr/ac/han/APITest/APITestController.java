@@ -30,7 +30,7 @@ import com.ibm.watson.developer_cloud.assistant.v1.model.MessageOptions;
 import com.ibm.watson.developer_cloud.assistant.v1.model.MessageResponse;
 import com.ibm.watson.developer_cloud.assistant.v1.model.RuntimeIntent;
 
-import kr.ac.han.mapper.RealTimeArrivalList;
+import kr.ac.han.vo.RealTimeArrivalList;
 
 //Watson, 공공데이터 서버 확인을 위한 컨트롤러 
 //Test - SubwayTest, WatsonTest 
@@ -107,5 +107,8 @@ public class APITestController {
 			return realtimeArrivalList.get(0);
 			
 		}  
+
+
+		
 		
 }
