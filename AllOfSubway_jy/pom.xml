@@ -15,6 +15,19 @@
 
 	</properties>
 	<dependencies>
+	<!-- https://mvnrepository.com/artifact/org.springframework/spring-aop -->
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-aop</artifactId>
+    <version>4.3.18.RELEASE</version>
+</dependency>
+	
+	<!-- https://mvnrepository.com/artifact/org.springframework.retry/spring-retry -->
+<dependency>
+    <groupId>org.springframework.retry</groupId>
+    <artifactId>spring-retry</artifactId>
+    <version>1.2.2.RELEASE</version>
+</dependency>
 	<!-- watson -->
 <dependency>
 	<groupId>com.ibm.watson.developer_cloud</groupId>
@@ -58,13 +71,11 @@
     <scope>test</scope>
 </dependency>
 <!-- watson -->
-		<!-- AspectJ -->
-		<dependency>
-			<groupId>org.aspectj</groupId>
-			<artifactId>aspectjrt</artifactId>
-			<version>${org.aspectj-version}</version>
-		</dependency>	
-
+<dependency>
+  <groupId>org.aspectj</groupId>
+  <artifactId>aspectjweaver</artifactId>
+  <version>1.8.9</version>
+</dependency>
 		<!-- Logging -->
 		<dependency>
 			<groupId>org.slf4j</groupId>

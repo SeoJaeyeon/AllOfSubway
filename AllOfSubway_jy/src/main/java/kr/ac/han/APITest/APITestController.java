@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -18,7 +19,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.NestedServletException;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -30,6 +33,7 @@ import com.ibm.watson.developer_cloud.assistant.v1.model.MessageOptions;
 import com.ibm.watson.developer_cloud.assistant.v1.model.MessageResponse;
 import com.ibm.watson.developer_cloud.assistant.v1.model.RuntimeIntent;
 
+import kr.ac.han.service.SubwayAPIDataService;
 import kr.ac.han.vo.RealTimeArrivalList;
 
 //Watson, 공공데이터 서버 확인을 위한 컨트롤러 
@@ -48,6 +52,9 @@ public class APITestController {
 	private String workspaceId;
 	@Value("${subway.key}")
 	private String appKey;
+	
+	@Autowired
+	private SubwayAPIDataService subwayAPIDataService;
 	//테스트
 		@RequestMapping(value="/watson", method=RequestMethod.GET ,produces = "application/json;charset=UTF-8")
 		public String watson(HttpServletRequest req){
@@ -81,29 +88,17 @@ public class APITestController {
 		
 		//테스트
 		@RequestMapping(value="/subway", method=RequestMethod.GET,produces = "application/json;charset=UTF-8")
-		public JsonNode test(HttpServletRequest req) throws JsonParseException, JsonMappingException, IOException{
-			RestTemplate restTemplate = new RestTemplate(); 
-			 
-			logger.info(appKey);
-			HttpHeaders headers = new HttpHeaders(); 
-			headers.add("Content-type", "application/json; charset=UTF-8");
-			
-			 
-			HttpEntity entity = new HttpEntity("parameters", headers); 
+		public JsonNode test(HttpServletRequest req) throws JsonParseException, JsonMappingException, IOException, HttpServerErrorException, NestedServletException{
 
-	
-			URI url=URI.create("http://swopenapi.seoul.go.kr/api/subway/"+appKey+"/json/realtimeStationArrival/0/5/"+URLEncoder.encode(req.getParameter("region"),"UTF-8")); 
-			//x -> x좌표, y -> y좌표 
-			 
-			ResponseEntity response= restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+			
+			ResponseEntity<String> response= subwayAPIDataService.realAccessTimeData("홍대입구");
 			//String 타입으로 받아오면 JSON 객체 형식으로 넘어옴
 		
 			ObjectMapper obj=new ObjectMapper();
-			RealTimeArrivalList rl=new RealTimeArrivalList();
-			//d=obj.readValue(response.getBody(), JSONMapper.class);
-			
+
 			JsonNode node=obj.readValue(response.getBody().toString(), JsonNode.class);
-			JsonNode realtimeArrivalList=node.get("realtimeArrivalList");		
+			JsonNode realtimeArrivalList=node.get("realtimeArrivalList");
+			
 			return realtimeArrivalList.get(0);
 			
 		}  

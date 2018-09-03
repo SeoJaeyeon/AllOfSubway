@@ -26,12 +26,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.FlashMap;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.support.RequestContextUtils;
 import org.springframework.web.servlet.view.RedirectView;
+import org.springframework.web.util.NestedServletException;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -70,35 +72,11 @@ public class RealTimeAccessInfoController {
 		return keyboard;
 	}
 	
-	//Open API 2.0 Spec, 스웨거
 	@RequestMapping(value = "/message", method = RequestMethod.POST, produces="application/json; charset=UTF-8")
 	@ResponseBody
-	public ResponseMessageVO message(@RequestBody RequestMessageVO vo, HttpServletRequest req, Model model) throws JsonParseException, JsonMappingException, IOException, APIServerException
+	public ResponseMessageVO message(@RequestBody RequestMessageVO vo, HttpServletRequest req, Model model) throws JsonParseException, JsonMappingException, IOException, HttpServerErrorException, NestedServletException
 	{
-		logger.info("/message");
-	/*	if(req.getParameter("reaccess")!=null){
-			//재시도 상태
-			int count=0;
-			if(req.getParameter("count")==null)
-				count=0;
-			else
-				count=Integer.parseInt(req.getParameter("count"))+1;
-			logger.info(count+"번째 호출");
-			model.addAttribute("count",count);
-		}
-		
-		if(req.getParameter("fail")!=null){
-			ResponseMessageVO res_vo=new ResponseMessageVO();
-			MessageVO mes_vo=new MessageVO();
-			KeyboardVO keyboard=new KeyboardVO();
-			keyboard.setType("text");
-			res_vo.setKeyboard(keyboard);
-			MessageVO ms=new MessageVO();
-			ms.setText("잠시후 다시 시도해주세요");
-			res_vo.setMessage(ms);
-			return res_vo;
-		}
-		throw new APIServerException();	*/
+			
 		ResponseMessageVO res_vo=new ResponseMessageVO();
 		MessageVO mes_vo=new MessageVO();
 		KeyboardVO keyboard=new KeyboardVO();
@@ -121,11 +99,9 @@ public class RealTimeAccessInfoController {
 
 		try{
 	
-		ResponseEntity response= subwayAPIDataService.realAccessTimeData(station);
+		ResponseEntity<String> response= subwayAPIDataService.realAccessTimeData(station);
 
 		ObjectMapper obj=new ObjectMapper();
-		RealTimeArrivalList rl=new RealTimeArrivalList();
-
 		
 		JsonNode node=obj.readValue(response.getBody().toString(), JsonNode.class);
 		JsonNode realtimeArrivalList=node.get("realtimeArrivalList");
@@ -137,25 +113,10 @@ public class RealTimeAccessInfoController {
 			res_vo.setMessage(mes_vo);
 			return res_vo;
 		}
-		catch(Exception ex){
-				throw new APIServerException();			
-		}
+
 		return res_vo;
 
 	}
 
-	@ExceptionHandler(APIServerException.class)
-	@ResponseBody
-	public RedirectView apiServerExceptionHandler(APIServerException ex,HttpServletRequest request,HttpServletResponse response){
-		  String redirect = "/message?fail";
-		  RedirectView rw = new RedirectView(redirect);
-		  
-		  request.setAttribute(
-			      View.RESPONSE_STATUS_ATTRIBUTE, HttpStatus.TEMPORARY_REDIRECT);
-		  RequestMessageVO vo=new RequestMessageVO();
-		  request.setAttribute("vo", vo);
-		  request.setAttribute("fail", "");
-		  return rw;
-	}
 	
 }
