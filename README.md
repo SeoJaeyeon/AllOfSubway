@@ -1,6 +1,6 @@
----
 
----
+### 지하철 다물어봐!
+
 
 **개요**
 
@@ -12,7 +12,7 @@
 
 **시스템구조**
 
-![system-architecture](https://github.com/SeoJaeyeon/AllOfSubway/blob/master/img/system-architecture.PNG?raw=true)
+![system-architecture](https://github.com/SeoJaeyeon/AllOfSubway/blob/master/img/system_architecture.png?raw=true)
 
 **주요 요구사항 및 구현 내용**
 
