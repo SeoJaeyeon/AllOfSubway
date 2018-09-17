@@ -21,3 +21,7 @@
 - 자연어 형태의 요청 분석: Watson Conversation  API를 연동하여 사용자의 질문 패턴을 예상하여 자연어를 처리할 수 있도록 함
 - 서버 다운 시 재요청: 실시간 정보 제공 API 특성 상 서버 다운이 잦은 것을 해결하기 위해 Spring-Retry를 통해 최대 3번까지 재요청 뒤 3번 이후에는 응답 불가 메시지 전송
 
+**시연 사진**
+
+![img](https://github.com/SeoJaeyeon/AllOfSubway/blob/master/img/sample.png?raw=true)
+
