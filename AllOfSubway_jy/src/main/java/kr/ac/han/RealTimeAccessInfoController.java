@@ -105,7 +105,12 @@ public class RealTimeAccessInfoController {
 		
 		JsonNode node=obj.readValue(response.getBody().toString(), JsonNode.class);
 		JsonNode realtimeArrivalList=node.get("realtimeArrivalList");
-		mes_vo.setText(realtimeArrivalList.get(0).get("trainLineNm")+" -> "+realtimeArrivalList.get(0).get("arvlMsg2"));
+		mes_vo.setText("1: "+realtimeArrivalList.get(0).get("trainLineNm")+" -> "+realtimeArrivalList.get(0).get("arvlMsg2")+"\n2: "
+				+realtimeArrivalList.get(1).get("trainLineNm")+" -> "+realtimeArrivalList.get(1).get("arvlMsg2")+"\n3: "
+				+realtimeArrivalList.get(2).get("trainLineNm")+" -> "+realtimeArrivalList.get(2).get("arvlMsg2")+"\n4: "
+				+realtimeArrivalList.get(3).get("trainLineNm")+" -> "+realtimeArrivalList.get(3).get("arvlMsg2")+"\n5: "
+				+realtimeArrivalList.get(4).get("trainLineNm")+" -> "+realtimeArrivalList.get(4).get("arvlMsg2")
+				);
 		res_vo.setMessage(mes_vo);
 		
 		}catch(NullPointerException exNull){
