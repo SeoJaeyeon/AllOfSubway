@@ -40,7 +40,7 @@ Logger logger=LoggerFactory.getLogger(SubwayTest.class);
 		logger.info("/watson 호출");
         this.mock.perform(
                 get("/watson")
-                .param("query", "홍대입구역 언제와?"))
+                .param("query", "으엉으인데 언제와?"))
                 .andDo(print())
                 .andExpect(status().isOk());
     

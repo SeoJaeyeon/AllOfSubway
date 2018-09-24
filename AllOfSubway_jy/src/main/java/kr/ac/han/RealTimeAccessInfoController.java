@@ -96,6 +96,12 @@ public class RealTimeAccessInfoController {
 		String query=vo.getContent();		
 		
 		String station= watsonAPIConverterService.converterJy(query);		
+		
+		if(station==null){
+			mes_vo.setText("올바른 역 명을 입력해주세요\nex)건대 어디야? -> 건대입구인데 어디야?");
+			res_vo.setMessage(mes_vo);
+			return res_vo;
+		}
 
 		try{
 	
@@ -114,7 +120,8 @@ public class RealTimeAccessInfoController {
 		res_vo.setMessage(mes_vo);
 		
 		}catch(NullPointerException exNull){
-			mes_vo.setText("올바른 역 명을 입력해주세요\nex)건대 어디야? -> 건대입구인데 어디야?");
+			exNull.printStackTrace();
+			mes_vo.setText("운행중인 열차가 없습니다");
 			res_vo.setMessage(mes_vo);
 			return res_vo;
 		}

@@ -43,7 +43,7 @@ public class SubwayTest {
 		logger.info("/subway 호출");
         this.mock.perform(
                 get("/subway")
-                .param("region","서울")
+                .param("region","건대입구")
         		)         
                 .andDo(print())
                 .andExpect(status().isOk());

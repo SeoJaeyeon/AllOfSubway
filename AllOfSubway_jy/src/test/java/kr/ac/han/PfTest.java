@@ -50,12 +50,13 @@ public class PfTest {
 		logger.info("/message 호출");
 		RequestMessageVO rv=new RequestMessageVO();
 		rv.setType("text");
-		rv.setContent("홍대인데 언제?");
+		rv.setContent("건대인데 어디야?");
 		
 		  ObjectMapper mapper = new ObjectMapper();
 		  mapper.configure(SerializationFeature.WRAP_ROOT_VALUE, false);
 		    ObjectWriter ow = mapper.writer().withDefaultPrettyPrinter();
 		    String requestJson=ow.writeValueAsString(rv);
+		   logger.info(requestJson);
 		this.mock.perform(post("/message").contentType(APPLICATION_JSON_UTF8)
 			        .content(requestJson))
 					.andDo(print())

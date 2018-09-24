@@ -88,10 +88,10 @@ public class APITestController {
 		
 		//테스트
 		@RequestMapping(value="/subway", method=RequestMethod.GET,produces = "application/json;charset=UTF-8")
-		public JsonNode test(HttpServletRequest req) throws JsonParseException, JsonMappingException, IOException, HttpServerErrorException, NestedServletException{
+		public JsonNode test(String region) throws JsonParseException, JsonMappingException, IOException, HttpServerErrorException, NestedServletException{
 
 			
-			ResponseEntity<String> response= subwayAPIDataService.realAccessTimeData("홍대입구");
+			ResponseEntity<String> response= subwayAPIDataService.realAccessTimeData(region);
 			//String 타입으로 받아오면 JSON 객체 형식으로 넘어옴
 		
 			ObjectMapper obj=new ObjectMapper();

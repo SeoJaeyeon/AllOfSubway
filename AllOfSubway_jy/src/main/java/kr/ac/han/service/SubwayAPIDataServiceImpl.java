@@ -28,13 +28,13 @@ public class SubwayAPIDataServiceImpl implements SubwayAPIDataService {
 	@Retryable({NestedServletException.class, HttpServerErrorException.class})
 	@Override
 	public ResponseEntity<String> realAccessTimeData(String station) throws UnsupportedEncodingException, NestedServletException, HttpServerErrorException  {
-		 logger.info(Integer.toString(retry++));
+		logger.info(Integer.toString(retry++));
 		String encodeStation=URLEncoder.encode(station,"UTF-8");
 		HttpEntity<String> entity = new HttpEntity<String>("parameters", new HttpHeaders()); 
 		RestTemplate restTemplate = new RestTemplate(); 
 		URI url=URI.create("http://swopenapi.seoul.go.kr/api/subway/"+appKey+"/json/realtimeStationArrival/0/5/"+encodeStation); 
 		ResponseEntity<String> response= restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-		
+		if(response==null) logger.info("response is null");
 		return response;
 	}
 
